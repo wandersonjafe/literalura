@@ -48,6 +48,7 @@ public class Principal implements CommandLineRunner {
                     3 - Listar autores registrados
                     4 - Listar autores vivos em determinado ano
                     5 - Listar livros por idioma
+                    6 - Buscar autor por nome específico
                     0 - Sair
                     """);
 
@@ -64,6 +65,7 @@ public class Principal implements CommandLineRunner {
                 case 3 -> listarAutoresRegistrados();
                 case 4 -> listarAutoresVivosEmDeterminadoAno();
                 case 5 -> listarLivrosPorIdioma();
+                case 6 -> buscarAutorPorNome();
                 case 0 -> System.out.println("Encerrando a aplicação.");
                 default -> System.out.println("Opção inválida.");
             }
@@ -89,11 +91,11 @@ public class Principal implements CommandLineRunner {
                 ? new DadosAutor("Autor desconhecido", null, null)
                 : dto.authors().get(0);
 
-        Autor autor = autorRepository.findByNomeContainingIgnoreCase(dadosAutor.nome())
-                .orElseGet(() -> {
-                    Autor novoAutor = new Autor(dadosAutor.nome(), dadosAutor.anoNascimento(), dadosAutor.anoFalecimento());
-                    return autorRepository.save(novoAutor);
-                });
+        Autor autor = autorRepository.findByNomeIgnoreCase(dadosAutor.nome())
+                .orElseGet(() -> autorRepository.save(
+                        new Autor(dadosAutor.nome(), dadosAutor.anoNascimento(), dadosAutor.anoFalecimento())
+                ));
+
 
         Livro livro = new Livro(dto, autor);
         livroRepository.save(livro);
@@ -175,14 +177,14 @@ public class Principal implements CommandLineRunner {
 
     private void listarLivrosPorIdioma() {
         System.out.println("""
-        Escolha um idioma para buscar os livros:
-        ----------------------------------------
-        pt - Português
-        en - Inglês
-        es - Espanhol
-        fr - Francês
-        de - Alemão
-        """);
+                Escolha um idioma para buscar os livros:
+                ----------------------------------------
+                pt - Português
+                en - Inglês
+                es - Espanhol
+                fr - Francês
+                de - Alemão
+                """);
 
         System.out.print("Digite o código do idioma: ");
         String idioma = leitura.nextLine().trim();
@@ -197,4 +199,28 @@ public class Principal implements CommandLineRunner {
         }
     }
 
+    private void buscarAutorPorNome() {
+        System.out.print("Digite o nome do autor: ");
+        String nomeBusca = leitura.nextLine();
+
+        List<Autor> autores = autorRepository.findByNomeContainingIgnoreCase(nomeBusca);
+
+        if (autores.isEmpty()) {
+            System.out.println("Nenhum autor encontrado com esse nome.");
+        } else {
+            System.out.println("\nAutor(es) encontrado(s):");
+            for (Autor autor : autores) {
+                System.out.println("Autor: " + autor.getNome());
+                System.out.println("Nascimento: " + (autor.getAnoNascimento() != null ? autor.getAnoNascimento() : "Desconhecido"));
+                System.out.println("Falecimento: " + (autor.getAnoFalecimento() != null ? autor.getAnoFalecimento() : "Desconhecido"));
+
+                String obras = autor.getLivros().stream()
+                        .map(Livro::getTitulo)
+                        .collect(Collectors.joining(", "));
+
+                System.out.println("Obras: " + (obras.isEmpty() ? "Nenhuma" : obras));
+                System.out.println("------------------------------");
+            }
+        }
+    }
 }

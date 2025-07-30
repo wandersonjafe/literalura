@@ -49,7 +49,7 @@ public class LivroService {
                 ? new DadosAutor("Autor desconhecido", null, null)
                 : dto.authors().get(0);
 
-        Autor autor = autorRepository.findByNomeContainingIgnoreCase(dadosAutor.nome())
+        Autor autor = autorRepository.findByNomeIgnoreCase(dadosAutor.nome())
                 .orElseGet(() -> autorRepository.save(
                         new Autor(dadosAutor.nome(), dadosAutor.anoNascimento(), dadosAutor.anoFalecimento()))
                 );
