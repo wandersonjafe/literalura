@@ -10,4 +10,6 @@ public class LiteraluraApplication {
 		SpringApplication.run(LiteraluraApplication.class, args);
 	}
 
+
+
 }
